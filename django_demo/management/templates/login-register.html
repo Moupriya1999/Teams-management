@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+Login Page
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/login-register.css' %}">
+
+<div class="container" id="container">
+    <div class="form-container sign-up">
+        <form method="post" action="{% url 'signup' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h1>Create Account</h1>
+
+            <!-- Step indicators -->
+            <div class="step-indicators">
+                <span class="step active" data-step="1">1</span>
+                <span class="step inactive" data-step="2">2</span>
+                <span class="step inactive" data-step="3">3</span>
+                <span class="step inactive" data-step="4">4</span>
+            </div>
+
+            <!-- Step 1: Name -->
+            <div class="form-step active" id="step-1">
+                <input type="text" name="name" placeholder="Name" required oninput="validateStep(1)">
+                <div class="navigation">
+                    <span class="arrow" id="next-1" onclick="nextStep(2)" style="display:none;">&#8594;</span>
+                </div>
+            </div>
+
+            <!-- Step 2: Contact Info -->
+            <div class="form-step" id="step-2">
+                <input type="email" name="email" placeholder="Email" required oninput="validateStep(2)">
+                <input type="text" name="phone_number" placeholder="Phone Number" required oninput="validateStep(2)">
+                <div class="navigation">
+                    <span class="arrow" onclick="prevStep(1)">&#8592;</span>
+                    <span class="arrow" id="next-2" onclick="nextStep(3)" style="display:none;">&#8594;</span>
+                </div>
+            </div>
+
+            <!-- Step 3: Birthdate and Gender -->
+            <div class="form-step" id="step-3">
+                <input type="date" name="birthdate" placeholder="Birthdate" required oninput="validateStep(3)">
+                <select name="gender" required oninput="validateStep(3)">
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                </select>
+                <div class="navigation">
+                    <span class="arrow" onclick="prevStep(2)">&#8592;</span>
+                    <span class="arrow" id="next-3" onclick="nextStep(4)" style="display:none;">&#8594;</span>
+                </div>
+            </div>
+
+            <!-- Step 4: Profile Image and Password -->
+            <div class="form-step" id="step-4">
+                <input type="file" name="profile_image" placeholder="Profile Image" required oninput="validateStep(4)">
+                <input type="password" name="password" placeholder="Password" required oninput="validateStep(4)">
+                <div class="navigation">
+                    <span class="arrow" onclick="prevStep(3)">&#8592;</span>
+                    <button type="submit">Sign Up</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <div class="form-container sign-in">
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <h1>Sign In</h1>
+            <div class="social-icons">
+                <a href="#" class="icon"><i class="fa-brands fa-google-plus-g"></i></a>
+                <a href="#" class="icon"><i class="fa-brands fa-facebook-f"></i></a>
+                <a href="#" class="icon"><i class="fa-brands fa-github"></i></a>
+                <a href="#" class="icon"><i class="fa-brands fa-linkedin-in"></i></a>
+            </div>
+            <span>or use your email password</span>
+            <input type="email" name="email" placeholder="Email">
+            <input type="password" name="password" placeholder="Password">
+            <a href="#">Forget Your Password?</a>
+            <button type="submit">Sign In</button>
+        </form>
+    </div>
+    
+    <div class="toggle-container">
+        <div class="toggle">
+            <div class="toggle-panel toggle-left">
+                <h1>Welcome Back!</h1>
+                <p>Enter your personal details to use all of site features</p>
+                <button class="hidden" id="login">Sign In</button>
+            </div>
+            <div class="toggle-panel toggle-right">
+                <h1>Hello, Friend!</h1>
+                <p>Register with your personal details to use all of site features</p>
+                <button class="hidden" id="register">Sign Up</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showStep(step) {
+        const steps = document.querySelectorAll('.form-step');
+        steps.forEach((stepElement, index) => {
+            stepElement.classList.toggle('active', index + 1 === step);
+        });
+
+        const indicators = document.querySelectorAll('.step-indicators .step');
+        indicators.forEach((indicator, index) => {
+            if (index + 1 === step || index < step) {
+                indicator.classList.add('active');
+                indicator.classList.remove('inactive');
+            } else {
+                indicator.classList.add('inactive');
+                indicator.classList.remove('active');
+            }
+        });
+    }
+
+    function nextStep(step) {
+        if (validateStep(step - 1)) {
+            showStep(step);
+        }
+    }
+
+    function prevStep(step) {
+        showStep(step);
+    }
+
+    function validateStep(step) {
+        const stepElement = document.querySelector(`#step-${step}`);
+        const inputs = stepElement.querySelectorAll('input, select');
+        let isValid = true;
+
+        inputs.forEach(input => {
+            if (!input.checkValidity()) {
+                input.reportValidity();
+                isValid = false;
+            }
+        });
+
+        const nextButton = document.getElementById(`next-${step}`);
+        if (isValid) {
+            if (nextButton) nextButton.style.display = 'inline';
+        } else {
+            if (nextButton) nextButton.style.display = 'none';
+        }
+
+        const nextStepIndicator = document.querySelector(`.step-indicators .step[data-step="${step + 1}"]`);
+        if (nextStepIndicator && isValid) {
+            nextStepIndicator.classList.remove('inactive');
+        }
+
+        return isValid;
+    }
+
+    function validateField(field, step) {
+        if (field.checkValidity()) {
+            document.getElementById(`next-${step}`).style.display = 'inline';
+        } else {
+            document.getElementById(`next-${step}`).style.display = 'none';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        showStep(1);
+
+        document.querySelectorAll('input, select').forEach((input, index) => {
+            const step = Math.ceil((index + 1) / 2);
+            input.addEventListener('input', () => validateField(input, step));
+        });
+
+        const steps = document.querySelectorAll('.step-indicators .step');
+        steps.forEach(step => {
+            step.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetStep = parseInt(step.getAttribute('data-step'));
+                if (validateStep(targetStep - 1)) {
+                    showStep(targetStep);
+                }
+            });
+        });
+    });
+</script>
+
+<script src="{% static 'js/script.js' %}"></script>
+{% endblock %}
